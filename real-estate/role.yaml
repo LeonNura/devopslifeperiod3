@@ -1,0 +1,10 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: main-role
+  namespace: real-estate-listing-namespace
+rules:
+  - apiGroups: ["*", "apps", "extensions"]
+    resources:
+      ["pods", "deployments", "services", "configmaps", "secrets", "pods/log"]
+    verbs: ["get", "watch", "list", "create", "update", "delete"]

@@ -1,0 +1,16 @@
+docker cp <container_id>:/pulsar/conf/broker.conf ./broker.conf
+docker cp ./prometheus.yaml <container_id>:/etc/prometheus/prometheus.yaml
+docker cp ./elastic.yml 29069422007d:/usr/share/elasticsearch/config/elasticsearch.yml
+docker cp ./alertmanager.yml f41b9899e681:/etc/alertmanager/alertmanager.yml
+
+docker run -d --name node_exporter \
+  -p 9100:9100 \
+  --restart unless-stopped \
+  prom/node-exporter:latest
+
+docker run \
+  --net=host \
+  -e DATA_SOURCE_URI="34.17.29.63:5432/postgres?sslmode=disable" \
+  -e DATA_SOURCE_USER=real-estate-platform-user \
+  -e DATA_SOURCE_PASS=GRhtx3rC \
+  quay.io/prometheuscommunity/postgres-exporter

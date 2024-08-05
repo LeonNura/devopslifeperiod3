@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: real-estate-listing-platform-deployment
+  namespace: real-estate-listing-namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: real-estate-listing-platform
+  template:
+    metadata:
+      labels:
+        app: real-estate-listing-platform
+    spec:
+      containers:
+        - name: real-estate-listing-platform-container
+          image: leonnura/backend-real-estate:$(Build.BuildId)
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRES_HOST
+              value: "34.17.17.11"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: real-estate-listing-backend-service
+  namespace: real-estate-listing-namespace
+spec:
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer

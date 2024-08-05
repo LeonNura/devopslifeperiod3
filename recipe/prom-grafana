@@ -1,0 +1,25 @@
+docker run -d --name prometheus \
+  --net monitoring-net \
+  -v /path/to/prometheus/data:/prometheus \
+  -p 9090:9090 \
+  prom/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml
+
+
+docker run -d --name grafana \
+  --net monitoring-net \
+  -p 3000:3000 \
+  grafana/grafana \
+  --config=/etc/grafana/grafana.ini
+
+docker run -d --name recipe-sharing-db \
+  -e SA_PASSWORD=recipe_sharing_pass \
+  -e ACCEPT_EULA=Y \
+  -p 1433:1433 \
+  mcr.microsoft.com/mssql/server:latest
+
+sudo docker exec -it mssql /opt/mssql-tools/bin/sqlcmd -S 34.17.65.219 -U SA -P 'recipe_sharing_pass'
+
+sudo docker run --name mssql -d -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=recipe_sharing_pass' -p 1433:1433 mcr.microsoft.com/mssql/server:2019-latest
+
+docker exec -it mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P recipe_sharing_pass -C

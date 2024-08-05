@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: real-estate-listing-frontend-deployment
+  namespace: real-estate-listing-namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: real-estate-listing-frontend
+  template:
+    metadata:
+      labels:
+        app: real-estate-listing-frontend
+    spec:
+      containers:
+        - name: real-estate-listing-frontend-container
+          image: leonnura/real-estate-listing-platform:$(Build.BuildId)
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_AUTH0_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-secret
+                  key: VITE_AUTH0_DOMAIN
+            - name: VITE_AUTH0_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-secret
+                  key: VITE_AUTH0_CLIENT_ID
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: real-estate-listing-frontend-service
+  namespace: real-estate-listing-namespace
+spec:
+  selector:
+    app: real-estate-listing-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: real-estate-listing-frontend-ingress
+  namespace: real-estate-listing-namespace
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: myapp.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: real-estate-listing-frontend-service
+                port:
+                  number: 80
